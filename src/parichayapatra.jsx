@@ -6,12 +6,13 @@ import { getFirestore, collection, query, where, getDocs } from 'firebase/firest
 // ⚠️ फायरबेस सेटिङ: यहाँ आफ्नो वास्तविक Firebase Project Configuration विवरणहरू राख्नुहोस्:
 // =========================================================================
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyCf3S2jWP-Ok4CqX_OP9ZJ9lapyet8GcWg",
+  authDomain: "khassamajapp.firebaseapp.com",
+  databaseURL: "https://khassamajapp-default-rtdb.firebaseio.com",
+  projectId: "khassamajapp",
+  storageBucket: "khassamajapp.firebasestorage.app",
+  messagingSenderId: "505037368041",
+  appId: "1:505037368041:web:ca94f24ab64698a0d55e78"
 };
 
 // Initialize Firebase & Firestore
