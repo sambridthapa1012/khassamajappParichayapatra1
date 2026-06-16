@@ -30,44 +30,50 @@ export default function ParichayaPatra() {
   const getQueryParamId = () => new URLSearchParams(window.location.search).get('id');
 
   const fetchMemberDetails = async (idToSearch) => {
-   if (!idToSearch) return;
+  if (!idToSearch) return;
 
     setLoading(true);
     setErrorMsg('');
     setMember(null);
 
-    // १. 'KS-' हटाउने र बाँकी रहेकोलाई नम्बरमा बदल्ने
-    // जस्तै: "KS-9" बाट "9" निकाल्छ र त्यसलाई Number(9) बनाउँछ
-    const cleanId = idToSearch.replace(/KS-/gi, "").trim();
+    // KS- हटाएर नम्बर मात्र लिने
+    const cleanId = idToSearch.toString().replace(/KS-/gi, "").trim();
     const searchNo = parseInt(cleanId, 10);
 
     if (isNaN(searchNo)) {
-      setErrorMsg("सदस्यता नम्बरको ढाँचा मिलेन। कृपया सही ID प्रविष्ट गर्नुहोस्।");
+      setErrorMsg("सदस्यता नम्बरको ढाँचा मिलेन।");
       setLoading(false);
       return;
     }
 
     try {
-      // २. अब 'searchNo' (Number) को प्रयोग गरेर क्वेरी गर्नुहोस्
-      const q = query(collection(db, "users"), where("sadasyataNo", "==", searchNo));
-      const querySnapshot = await getDocs(q);
+      // १. 'users' कलेक्सनका सबै डकुमेन्टहरू ल्याउने
+      const querySnapshot = await getDocs(collection(db, "users"));
+      
+      let foundMember = null;
 
-      if (!querySnapshot.empty) {
-        const docData = querySnapshot.docs[0].data();
+      // २. हरेक डकुमेन्टभित्र पसेर sadasyataNo चेक गर्ने
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        // टाइप मिलाउन Number(data.sadasyataNo) प्रयोग गरिएको छ
+        if (Number(data.sadasyataNo) === searchNo) {
+          foundMember = data;
+        }
+      });
 
-        // स्वीकृत स्थिति जाँच
-        if (docData.paymentStatus !== "Approved" && docData.paymentStatus !== "Verified") {
+      // ३. नतिजा अनुसार देखाउने
+      if (foundMember) {
+        if (foundMember.paymentStatus !== "Approved" && foundMember.paymentStatus !== "Verified") {
           setErrorMsg("यो खाता स्वीकृत (Approved) भइसकेको छैन।");
         } else {
-          setMember({ ...docData, formattedId: `KS-${searchNo}` });
+          setMember({ ...foundMember, formattedId: `KS-${searchNo}` });
         }
       } else {
-        // यदि नम्बरले काम गरेन भने, एकपटक स्ट्रिङको रूपमा पनि जाँच गर्ने (वैकल्पिक)
         setErrorMsg("प्रणालीमा यो सदस्यता नम्बर फेला परेन।");
       }
     } catch (error) {
       console.error("Firebase Error: ", error);
-      setErrorMsg("डाटाबेस सर्भरसँग सम्पर्क हुन सकेन। पछि प्रयास गर्नुहोस्।");
+      setErrorMsg("डाटाबेस सर्भरसँग सम्पर्क हुन सकेन।");
     } finally {
       setLoading(false);
     }
