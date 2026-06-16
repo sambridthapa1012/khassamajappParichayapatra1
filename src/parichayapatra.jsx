@@ -30,13 +30,14 @@ export default function ParichayaPatra() {
   const getQueryParamId = () => new URLSearchParams(window.location.search).get('id');
 
   const fetchMemberDetails = async (idToSearch) => {
-    if (!idToSearch) return;
+   if (!idToSearch) return;
 
     setLoading(true);
     setErrorMsg('');
     setMember(null);
 
-    // Clean ID: removing 'KS-' prefix and parsing as integer
+    // १. 'KS-' हटाउने र बाँकी रहेकोलाई नम्बरमा बदल्ने
+    // जस्तै: "KS-9" बाट "9" निकाल्छ र त्यसलाई Number(9) बनाउँछ
     const cleanId = idToSearch.replace(/KS-/gi, "").trim();
     const searchNo = parseInt(cleanId, 10);
 
@@ -47,19 +48,21 @@ export default function ParichayaPatra() {
     }
 
     try {
+      // २. अब 'searchNo' (Number) को प्रयोग गरेर क्वेरी गर्नुहोस्
       const q = query(collection(db, "users"), where("sadasyataNo", "==", searchNo));
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
         const docData = querySnapshot.docs[0].data();
 
-        // Check for approved status
+        // स्वीकृत स्थिति जाँच
         if (docData.paymentStatus !== "Approved" && docData.paymentStatus !== "Verified") {
           setErrorMsg("यो खाता स्वीकृत (Approved) भइसकेको छैन।");
         } else {
-          setMember({ ...docData, formattedId: idToSearch.toUpperCase() });
+          setMember({ ...docData, formattedId: `KS-${searchNo}` });
         }
       } else {
+        // यदि नम्बरले काम गरेन भने, एकपटक स्ट्रिङको रूपमा पनि जाँच गर्ने (वैकल्पिक)
         setErrorMsg("प्रणालीमा यो सदस्यता नम्बर फेला परेन।");
       }
     } catch (error) {
